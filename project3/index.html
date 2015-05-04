@@ -6,7 +6,10 @@
        #map-canvas {height: 80%; margin: 0; padding: 0;}
       h1 {text-align: center;}
       #count {text-align: center;}
+      #forms {text-align: center;}
     </style>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js">
+    </script>
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCqTNa85QrA1sbfLyOXu5CFNy7CE9xKjMQ">
     </script>
@@ -15,12 +18,7 @@
       var directionsDisplay;
 	  var directionsService = new google.maps.DirectionsService();
       var map;
-      var polyline = new google.maps.Polyline({
-      	path: [],
-      	strokeColor: '#FF0000',
-      	strokeWeight: 3
-      });
-      var count = 0;
+      var markers = [];
       function initialize() {
       	directionsDisplay = new google.maps.DirectionsRenderer();
         var mapOptions = {
@@ -39,18 +37,30 @@
       	// 	});
       	// }
       	directionsDisplay.setMap(map);
-      	calcRoute();
+      	// calcRoute();
       }
 
-      function calcRoute() {
-      	var start = "Prospect Park, NY";
-      	var end = "721 Broadway, New York, NY"
+      function calcRoute(start, end) {
+      	if (markers.length > 0){
+      		for (var p = 0; p<markers.length; p++) {
+      			markers[p].setMap(null);
+      		}
+      	}
+      	markers = [];
+      	var count = 0;
+      	var start = start;
+      	var end = end;
       	var jsonData = JSON.parse(data);
       	var request = {
       		origin:start,
       		destination:end,
       		travelMode: google.maps.TravelMode.WALKING
       	};
+      	var polyline = new google.maps.Polyline({
+      		path: [],
+      		strokeColor: '#FF0000',
+      		strokeWeight: 3
+        });
       	directionsService.route(request, function(response, status) {
       		if (status == google.maps.DirectionsStatus.OK) {
       			var legs = response.routes[0].legs;
@@ -69,14 +79,18 @@
       					count += 1;
       					var marker = new google.maps.Marker({
       						position: position,
-      						map: map,
       						title: jsonData['location'+i][2]
       					});
+      					markers.push(marker);
       				}
       			}
+      			for (var n=0; n<markers.length; n++) {
+      				markers[n].setMap(map);
+      			}
       			directionsDisplay.setDirections(response);
-      			console.log(count);
+      			$("div#count h2").text("Number of Cameras: " + count);
       			map.fitBounds(response.routes[0].bounds);
+      			count = 0;
       		}
       	});
       }
@@ -94,13 +108,22 @@
       // }
       // createMarkers(data);
       google.maps.event.addDomListener(window, 'load', initialize);
-      
+      function onClick() {
+      	var start = document.getElementById("start").value;
+      	var end = document.getElementById("end").value;
 
+      	calcRoute(start, end);
+      }
     </script>
   </head>
   <body>
   	<div id="title"><h1>Cameras on Route</h1></div>
-	<div id="map-canvas"></div>
-	<div id="count">Coount will go here!</div>
-  </body>
-</html>
+  	<div id="forms">
+  		Start: <input type="text" name="start" id="start"> 
+  		End: <input type="text" name="end" id="end">
+  		<button id="submitButton" type="button" onClick="onClick();">Search</button>
+  		  	</div>
+  			<div id="map-canvas"></div>
+  			<div id="count"><h2>Number of Cameras: </h2></div>
+  		  </body>
+  		</html>)
