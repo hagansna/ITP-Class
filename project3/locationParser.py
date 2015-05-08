@@ -1,12 +1,13 @@
 import re
 import json
+import requests
 
-f = open('cameraLocations.txt', 'r+')
-file = f.read()
+response = requests.get('http://nyctmc.org/')
+text = response.content
 
-latlngs = re.findall('([\d.-]+)", "([\d.-]+)', file)
-streets = re.findall('c_html\d+ = "([\d\w\s(?@)(?\-)(?.)]+)', file)
-images = re.findall('window.open\("([\w\_.\?\=\d]+)"', file)
+latlngs = re.findall('([\d.-]+)", "([\d.-]+)', text)
+streets = re.findall('c_html\d+ = "([\d\w\s(?@)(?\-)(?.)]+)', text)
+images = re.findall('window.open\("([\w\_.\?\=\d]+)"', text)
 latlng = []
 for tup in latlngs:
     latlng.append((float(tup[0]), float(tup[1])))
